@@ -2,9 +2,10 @@
 
 version       = "0.1.0"
 author        = "mhimavamshi"
-description   = "A new awesome nimble package"
+description   = "lc3 vm for learning purposes"
 license       = "MIT"
 srcDir        = "src"
+bin           = @["lc3vmnim"]
 
 
 # Dependencies
