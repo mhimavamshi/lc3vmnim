@@ -17,7 +17,7 @@ proc main() =
 
   var running = Running(true);
 
-  while running:
+  while bool(running):
     let instr = memRead(registers[Register.PC])
     registers[Register.PC] += 1
     
