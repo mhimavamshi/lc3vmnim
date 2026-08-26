@@ -2,8 +2,6 @@ import alltypes
 import utils
 import memoryutils
 
-import std/strutils
-
 proc addOp*(instr: uint16, registers: var Registers) =
     # destination register - and with 0000111 
     let r0 = Register((instr shr 9) and 7'u16)
