@@ -15,7 +15,7 @@ proc main() =
   const START = 12288
   registers[Register.PC] = START 
 
-  var running = Running(true);
+  var running = Running(true)
 
   while bool(running):
     let instr = memRead(registers[Register.PC])
