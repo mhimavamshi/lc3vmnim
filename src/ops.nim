@@ -2,6 +2,8 @@ import alltypes
 import utils
 import memoryutils
 
+import std/strutils
+
 proc addOp*(instr: uint16, registers: var Registers) =
     # destination register - and with 0000111 
     let r0 = Register((instr shr 9) and 7'u16)
@@ -56,7 +58,7 @@ proc notOp*(instr: uint16, registers: var Registers) =
 
 proc br*(instr: uint16, registers: var Registers) =
     let condFlag = (instr shr 9) and 7'u16
-    if ((condFlag and registers[Register.COND]) == 1):
+    if(condFlag == registers[Register.COND]):
         let pcOffset = signExtend(instr and 0x1FF'u16, 9)
         registers[Register.PC] += pcOffset
 
@@ -69,10 +71,11 @@ proc jsr*(instr: uint16, registers: var Registers) =
     registers[Register.R7] = registers[Register.PC]
 
     if (longFlag == 1):
-        let longPcOffset = signExtend(instr shr 0x7FF'u16, 11) 
+        let longPcOffset = signExtend(instr and 0x7FF'u16, 11) 
+        echo(longPcOffset)
         registers[Register.PC] += longPcOffset
     else:
-        let r1 = Register((instr shr 6) and 7'u16) 
+        let r1 = Register((instr shr 6) and 7'u16)
         registers[Register.PC] = registers[r1]
 
 proc ld*(instr: uint16, registers: var Registers) =
