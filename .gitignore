@@ -1,1 +1,3 @@
 lc3vmnim
+tests/*
+!tests/*.nim 
