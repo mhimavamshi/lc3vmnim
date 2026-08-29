@@ -41,7 +41,7 @@ type
     PUTSP = 0x24,
     HALT = 0x25   
   
-  Memory* = array[range[0..MEMORYMAX], uint16]
+  Memory* = array[MEMORYMAX, uint16]
   Registers* = array[Register, uint16]
 
   Running* = distinct bool 

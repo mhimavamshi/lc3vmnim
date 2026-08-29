@@ -1,6 +1,27 @@
 import alltypes
 import memoryutils
 import ops
+import std/streams
+import utils 
+
+proc readImageFile(name: string, memory: var Memory) = 
+  let MEMORYMAX = 65535'u16
+
+  let f = newFileStream(name, fmRead)
+  if not f.isNil:
+    defer: f.close()
+    let origin = swap16(f.readUint16())
+
+    let maxRead = int(MEMORYMAX - origin + 1)
+
+    var read = f.readData(addr memory[origin], maxRead * sizeof(uint16))
+    let wordsRead = read div sizeof(uint16)
+
+    for i in 0..<wordsRead:
+      let offset = uint16(i)
+      memory[origin + offset] = swap16(memory[origin + offset])
+
+
 
 proc main() =
   # 2^16 locations (16 bit unsigned integer), and each has 16 bit value

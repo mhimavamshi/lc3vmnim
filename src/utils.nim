@@ -1,5 +1,8 @@
 import alltypes
 
+proc swap16*(x: uint16): uint16 {.inline.} = 
+  (x shl 8) or (x shr 8)
+
 proc signExtend*(x: uint16, bit_count: int): uint16 = 
   result = x 
   if ((x shr (bit_count - 1)) and 1'u16) == 1'u16:
