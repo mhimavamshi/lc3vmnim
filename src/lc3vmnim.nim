@@ -6,7 +6,7 @@ import utils
 
 #[ 
 there's an alternative way to write this, instead of 1->1 w c 
-we can also, maybe, read the whole file once and then 
+we can also, maybe, read the whole file once and then read it as needed in memory
 ]#
 proc readImageFile*(name: string, memory: var Memory) = 
   let MEMORYMAX = 65535'u16
