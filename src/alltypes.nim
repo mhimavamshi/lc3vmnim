@@ -46,8 +46,11 @@ type
 
   Running* = distinct bool 
 
+
 const   
   FL_POS* = Flags(1'u16)
   FL_ZRO* = Flags(2'u16)
   FL_NEG* = Flags(4'u16)
 
+  MR_KBSR* = 0xFE00'u16
+  MR_KBDR* = 0xFE02'u16
