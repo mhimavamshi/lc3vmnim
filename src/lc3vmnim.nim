@@ -4,7 +4,7 @@ import ops
 import std/streams
 import utils 
 
-proc readImageFile(name: string, memory: var Memory) = 
+proc readImageFile*(name: string, memory: var Memory) = 
   let MEMORYMAX = 65535'u16
 
   let f = newFileStream(name, fmRead)
@@ -77,4 +77,5 @@ proc main() =
       of RES, RTI:
         badOpcode()
 
-main()
+when isMainModule:
+  main()
