@@ -80,6 +80,88 @@ suite "BR":
         check registers[Register.PC] == 0x3001 # Remains unchanged from fetch step
 
 
+    test "BRz branches when condition is zero":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_ZRO
+
+        # BRz +1
+        br(0x0401'u16, registers)
+
+        check registers[Register.PC] == 0x3001
+
+    test "BRz does not branch when condition is positive":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_POS
+
+        # BRz +1
+        br(0x0401'u16, registers)
+
+        check registers[Register.PC] == 0x3000
+
+    test "BRn branches when condition is negative":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_NEG
+
+        # BRn +1
+        br(0x0801'u16, registers)
+
+        check registers[Register.PC] == 0x3001
+
+    test "BRnz branches for zero":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_ZRO
+
+        # BRnz +1
+        br(0x0C01'u16, registers)
+
+        check registers[Register.PC] == 0x3001
+
+    test "BRnz branches for negative":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_NEG
+
+        # BRnz +1
+        br(0x0C01'u16, registers)
+
+        check registers[Register.PC] == 0x3001
+
+    test "BRnz does not branch for positive":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_POS
+
+        # BRnz +1
+        br(0x0C01'u16, registers)
+
+        check registers[Register.PC] == 0x3000
+
+    test "BRnzp branches for positive":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_POS
+
+        # BRnzp +1
+        br(0x0E01'u16, registers)
+
+        check registers[Register.PC] == 0x3001
+
+    test "BRnzp branches for zero":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_ZRO
+
+        # BRnzp +1
+        br(0x0E01'u16, registers)
+
+        check registers[Register.PC] == 0x3001
+
+    test "BRnzp branches for negative":
+        registers[Register.PC] = 0x3000
+        registers[Register.COND] = FL_NEG
+
+        # BRnzp +1
+        br(0x0E01'u16, registers)
+
+        check registers[Register.PC] == 0x3001
+
+
 suite "JMP and RET":
     setup:
         var registers: Registers
