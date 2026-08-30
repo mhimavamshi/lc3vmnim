@@ -35,3 +35,12 @@ proc checkKey*(): bool =
         nil,
         addr timeout
     ) > 0
+
+proc readKey*(): uint16 =
+    var c: char
+    let n = read(STDIN_FILENO, addr c, 1)
+
+    if n == 1:
+        return uint16(ord(c))
+
+    return 0

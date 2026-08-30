@@ -56,7 +56,7 @@ proc notOp*(instr: uint16, registers: var Registers) =
 
 proc br*(instr: uint16, registers: var Registers) =
     let condFlag = (instr shr 9) and 7'u16
-    if(condFlag == registers[Register.COND]):
+    if (condFlag and registers[Register.COND]) != 0:
         let pcOffset = signExtend(instr and 0x1FF'u16, 9)
         registers[Register.PC] += pcOffset
 
@@ -70,7 +70,6 @@ proc jsr*(instr: uint16, registers: var Registers) =
 
     if (longFlag == 1):
         let longPcOffset = signExtend(instr and 0x7FF'u16, 11) 
-        echo(longPcOffset)
         registers[Register.PC] += longPcOffset
     else:
         let r1 = Register((instr shr 6) and 7'u16)
@@ -111,24 +110,29 @@ proc str*(instr: uint16, registers: var Registers, memory: var Memory) =
     let offset = signExtend(instr and 0x3F'u16, 6)
     memWrite(registers[r1] + offset, registers[r0], memory)
 
-proc trapPuts(registers: var Registers, memory: Memory) = 
+proc trapPuts(registers: var Registers, memory: Memory) =
     var n = registers[Register.R0]
-    while (memory[n] != 0):
-        var c = memory[n]
-        echo(char(c))
-        n += 1 
 
-proc trapGetC(registers: var Registers) = 
-    registers[Register.R0] = uint16(stdin.readChar())
+    while memory[n] != 0:
+        stdout.write(char(memory[n]))
+        n += 1
+
+    stdout.flushFile()
+
+proc trapGetC(registers: var Registers) =
+    let c = stdin.readChar()
+    registers[Register.R0] = uint16(ord(c))
     updateFlags(Register.R0, registers)
 
 proc trapOut(registers: var Registers) = 
-    echo(char(registers[Register.R0])) 
+    stdout.write(char(registers[Register.R0])) 
+    stdout.flushFile()
 
 proc trapIn(registers: var Registers) = 
     stdout.write("Enter a character: ")
     let c = stdin.readChar()
     stdout.write(c)
+    stdout.flushFile()
     registers[Register.R0] = uint16(c)
     updateFlags(Register.R0, registers)
 
@@ -141,9 +145,11 @@ proc trapPutsp(registers: var Registers, memory: Memory) =
         if r2 != 0:
             stdout.write(char(r2))
         n += 1
+    stdout.flushFile()
 
 proc trapHalt(running: var Running) = 
     stdout.write("HALT")
+    stdout.flushFile()
     running = Running(false)
 
 #[

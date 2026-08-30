@@ -25,7 +25,7 @@ suite "readImageFile":
     memory[0x2FFF] = 0xAAAA
     memory[0x3002] = 0xBBBB
 
-    readImageFile(filename, memory)
+    discard readImageFile(filename, memory)
 
     check:
       memory[0x2FFF] == 0xAAAA

@@ -11,22 +11,30 @@ there's an alternative way to write this, instead of 1->1 w c
 we can also, maybe, read the whole file once and then read it as needed in memory
 ]#
 proc readImageFile*(name: string, memory: var Memory): bool = 
+  # echo(&"reading image file: {name}")
 
   let f = newFileStream(name, fmRead)
+
   if not f.isNil:
+
     defer: f.close()
-    let origin = swap16(f.readUint16())
+    try:
 
-    let maxRead = int(MEMORYMAX - origin + 1)
+      let origin = swap16(f.readUint16())
+      let maxRead = int(MEMORYMAX - origin + 1)
+      var read = f.readData(addr memory[origin], maxRead * sizeof(uint16))
+      let wordsRead = read div sizeof(uint16)
 
-    var read = f.readData(addr memory[origin], maxRead * sizeof(uint16))
-    let wordsRead = read div sizeof(uint16)
-
-    for i in 0..<wordsRead:
-      let offset = uint16(i)
-      memory[origin + offset] = swap16(memory[origin + offset])
+      for i in 0..<wordsRead:
+        let offset = uint16(i)
+        memory[origin + offset] = swap16(memory[origin + offset])
+      
+    except IOError:
+      echo(&"couldn't find origin in image: {name}, exiting...")
+      quit(1)
 
     return true
+
   return false
 
 proc main() =
@@ -41,6 +49,10 @@ proc main() =
   registers[Register.COND] = FL_ZRO
 
   let args = commandLineParams()
+
+  if args.len() == 0:
+    echo("./lc3vmnim [image-file1] [image-file2] ...")
+    quit(1)
 
   for arg in args:
     let success = readImageFile(arg, memory)

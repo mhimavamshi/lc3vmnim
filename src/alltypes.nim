@@ -1,4 +1,4 @@
-const MEMORYMAX* = 65535
+const MEMORYMAX* = 65536
 const START* = 12288
 
 type

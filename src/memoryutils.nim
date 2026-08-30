@@ -13,7 +13,7 @@ proc memRead*(address: uint16, memory: var Memory): uint16 =
   if address == MR_KBSR:
     if checkKey(): 
       memory[MR_KBSR] = (1 shl 15)
-      memory[MR_KBDR] = uint16(stdin.readChar()) 
+      memory[MR_KBDR] = readKey()
     else:
       memory[MR_KBSR] = 0
   return memory[address]
