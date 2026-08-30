@@ -1,5 +1,6 @@
-const MEMORYMAX* = 65536
-const START* = 12288
+const
+  MEMORYMAX* = 0x10000
+  START* = 0x3000
 
 type
   Register* = enum
