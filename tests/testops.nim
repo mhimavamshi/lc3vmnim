@@ -119,15 +119,30 @@ suite "JSR and JSRR":
         check registers[Register.R7] == 0x3001 # Saves the incremented PC
         check registers[Register.PC] == 0x4000
 
-# suite "TRAP":
-#     setup:
-#         var registers: Registers
 
-#     test "TRAP updates R7 and vector":
-#         registers[PC] = 0x3000
-#         let instr = uint16(0b1111000000100101) # TRAP x25 (HALT)
-#         trapOp(instr, registers)
-#         check registers[R7] == 0x3001
+suite "TRAP":
+
+    setup:
+        var registers: Registers
+        var memory: Memory
+        var running = Running(true)
+
+    test "TRAP updates R7":
+        registers[PC] = 0x3001
+
+        let instr = uint16(0b1111000000100101)
+
+        trap(instr, registers, memory, running)
+
+        check registers[R7] == 0x3001
+
+    test "HALT stops VM":
+        let instr = uint16(0b1111000000100101)
+
+        trap(instr, registers, memory, running)
+
+        check bool(running) == false
+
 
 suite "LOADS - Negative Offsets":
 

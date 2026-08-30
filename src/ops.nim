@@ -145,7 +145,14 @@ proc trapPutsp(registers: var Registers, memory: Memory) =
 proc trapHalt(running: var Running) = 
     stdout.write("HALT")
     running = Running(false)
-        
+
+#[
+well apparently, you take the instruction, get the vector address which is in the beginning of the code/data
+save the PC to register
+jump and execute from there
+and then return back
+but here we just switch
+]#
 proc trap*(instr: uint16, registers: var Registers, memory: Memory, running: var Running) =
     registers[Register.R7] = registers[Register.PC]
 
