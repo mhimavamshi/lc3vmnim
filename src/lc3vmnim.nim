@@ -43,7 +43,7 @@ proc main() =
   var running = Running(true)
 
   while bool(running):
-    let instr = memRead(registers[Register.PC])
+    let instr = memRead(registers[Register.PC], memory)
     registers[Register.PC] += 1
     
     let op = instr shr 12 # get the first 4 bits from 16 bit word which is the opcode 
@@ -63,23 +63,36 @@ proc main() =
       of JSR:
         jsr(instr, registers)
       of LD:
-        ld(instr, registers)
+        ld(instr, registers, memory)
       of LDI:
-        ldi(instr, registers)
+        ldi(instr, registers, memory)
       of LDR:
-        ldr(instr, registers)
+        ldr(instr, registers, memory)
       of LEA:
         lea(instr, registers)
       of ST:
-        st(instr, registers)
+        st(instr, registers, memory)
       of STI:
-        sti(instr, registers)
+        sti(instr, registers, memory)
       of STR:
-        str(instr, registers)
+        str(instr, registers, memory)
       of TRAP:
         trap(instr, registers, memory, running)
       of RES, RTI:
         badOpcode()
 
+
+
 when isMainModule:
+  import term
+
+  proc ctrlcHandler() {.noconv.} =
+    restoreInputBuffering()
+    echo "\nInterrupted..."
+    quit(-2)
+
+  setControlCHook(ctrlcHandler)
+
+  disableInputBuffering()
   main()
+  restoreInputBuffering()
