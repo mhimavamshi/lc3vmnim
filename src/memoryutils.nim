@@ -1,5 +1,5 @@
 import alltypes
-import inpbuffer
+import term
 
 #[
 I guess, instead of doing it this way - the way of tutorial, reading on memory register access 
@@ -11,7 +11,7 @@ this simulates the real world async keyboard i guess
 ]#
 proc memRead*(address: uint16, memory: var Memory): uint16 = 
   if address == MR_KBSR:
-    if check_key(): 
+    if checkKey(): 
       memory[MR_KBSR] = (1 shl 15)
       memory[MR_KBDR] = uint16(stdin.readChar()) 
     else:
