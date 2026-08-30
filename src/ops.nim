@@ -20,14 +20,14 @@ proc addOp*(instr: uint16, registers: var Registers) =
     updateFlags(r0, registers)
 
 
-proc ldi*(instr: uint16, registers: var Registers) = 
+proc ldi*(instr: uint16, registers: var Registers, memory: var Memory) = 
     # destination register
     let r0 = Register((instr shr 9) and 7'u16)
     # PC offset 
     let pcOffset = signExtend(instr and 0x1FF'u16, 9)
     # add the offset to PC, look at that memory location, get the value inside
     # that value is another address, so fetch from memory again
-    registers[r0] = memRead(memRead(registers[Register.PC] + pcOffset))
+    registers[r0] = memRead(memRead(registers[Register.PC] + pcOffset, memory), memory)
     updateFlags(r0, registers)
 
 proc andOp*(instr: uint16, registers: var Registers) = 
@@ -76,17 +76,17 @@ proc jsr*(instr: uint16, registers: var Registers) =
         let r1 = Register((instr shr 6) and 7'u16)
         registers[Register.PC] = registers[r1]
 
-proc ld*(instr: uint16, registers: var Registers) =
+proc ld*(instr: uint16, registers: var Registers, memory: var Memory) =
     let r0 = Register((instr shr 9) and 7'u16) 
     let pcOffset = signExtend(instr and 0x1FF'u16, 9)
-    registers[r0] = memRead(registers[Register.PC] + pcOffset)
+    registers[r0] = memRead(registers[Register.PC] + pcOffset, memory)
     updateFlags(r0, registers)
 
-proc ldr*(instr: uint16, registers: var Registers) =
+proc ldr*(instr: uint16, registers: var Registers, memory: var Memory) =
     let r0 = Register((instr shr 9) and 7'u16) 
     let r1 = Register((instr shr 6) and 7'u16)
     let offset = signExtend(instr and 0x3F'u16, 6)
-    registers[r0] = memRead(registers[r1] + offset)
+    registers[r0] = memRead(registers[r1] + offset, memory)
     updateFlags(r0, registers)
 
 proc lea*(instr: uint16, registers: var Registers) =
@@ -95,21 +95,21 @@ proc lea*(instr: uint16, registers: var Registers) =
     registers[r0] = registers[Register.PC] + pcOffset
     updateFlags(r0, registers)
 
-proc st*(instr: uint16, registers: var Registers) =
+proc st*(instr: uint16, registers: var Registers, memory: var Memory) =
     let r0 = Register((instr shr 9) and 7'u16)
     let pcOffset = signExtend(instr and 0x1FF'u16, 9)
-    memWrite(registers[Register.PC] + pcOffset, registers[r0])
+    memWrite(registers[Register.PC] + pcOffset, registers[r0], memory)
 
-proc sti*(instr: uint16, registers: var Registers) =
+proc sti*(instr: uint16, registers: var Registers, memory: var Memory) =
     let r0 = Register((instr shr 9) and 7'u16)
     let pcOffset = signExtend(instr and 0x1FF'u16, 9)
-    memWrite(memRead(registers[Register.PC] + pcOffset), registers[r0])
+    memWrite(memRead(registers[Register.PC] + pcOffset, memory), registers[r0], memory)
 
-proc str*(instr: uint16, registers: var Registers) =
+proc str*(instr: uint16, registers: var Registers, memory: var Memory) =
     let r0 = Register((instr shr 9) and 7'u16)
     let r1 = Register((instr shr 6) and 7'u16)
     let offset = signExtend(instr and 0x3F'u16, 6)
-    memWrite(registers[r1] + offset, registers[r0])
+    memWrite(registers[r1] + offset, registers[r0], memory)
 
 proc trapPuts(registers: var Registers, memory: Memory) = 
     var n = registers[Register.R0]
