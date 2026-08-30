@@ -129,70 +129,80 @@ suite "JSR and JSRR":
 #         trapOp(instr, registers)
 #         check registers[R7] == 0x3001
 
-# suite "LOADS":
-#     setup:
-#         var registers: Registers
-#         var memory: array[65536, uint16]
+suite "LOADS - Negative Offsets":
 
-#     test "LD (PC-relative)":
-#         registers[PC] = 0x3000
-#         memory[0x3006] = 0xABCD          # 0x3001 + 5
-#         let instr = uint16(0b0010001000000101) # LD R1, #5
-#         ldOp(instr, registers, memory)
-#         check registers[R1] == 0xABCD
-#         check registers[COND] == FL_NEG
+    setup:
+        var registers: Registers
+        var memory: Memory
 
-#     test "LDR (Base+Offset)":
-#         registers[R2] = 0x4000
-#         memory[0x4005] = 0x1234          # 0x4000 + 5
-#         let instr = uint16(0b0110001010000101) # LDR R1, R2, #5
-#         ldrOp(instr, registers, memory)
-#         check registers[R1] == 0x1234
-#         check registers[COND] == FL_POS
+    test "LD (negative PC-relative)":
+        registers[PC] = 0x3001
+        memory[0x2FFD] = 0xABCD  # 0x3001 - 4
 
-#     test "LDI (Indirect)":
-#         registers[PC] = 0x3000
-#         memory[0x3006] = 0x4000          # Target address table
-#         memory[0x4000] = 0x7777          # Final data
-#         let instr = uint16(0b1010001000000101) # LDI R1, #5
-#         ldiOp(instr, registers, memory)
-#         check registers[R1] == 0x7777
-#         check registers[COND] == FL_POS
+        let instr = uint16(0b0010001111111100) # LD R1, #-4
 
-#     test "LEA (Load Effective Address)":
-#         registers[PC] = 0x3000
-#         let instr = uint16(0b1110001000000101) # LEA R1, #5
-#         leaOp(instr, registers)
-#         check registers[R1] == 0x3006 # Does not read memory, just computes address
-#         check registers[COND] == FL_POS
+        ld(instr, registers, memory)
 
-# suite "STORES":
-#     setup:
-#         var registers: Registers
-#         var memory: array[65536, uint16]
+        check:
+            registers[R1] == 0xABCD
+            registers[COND] == FL_NEG
 
-#     test "ST (PC-relative)":
-#         registers[PC] = 0x3000
-#         registers[R1] = 0x1111
-#         let instr = uint16(0b0011001000000101) # ST R1, #5
-#         stOp(instr, registers, memory)
-#         check memory[0x3006] == 0x1111 # 0x3001 + 5
+    test "LDR (negative Base+Offset)":
+        registers[R2] = 0x4005
+        memory[0x4000] = 0x1234  # 0x4005 - 5
 
-#     test "STR (Base+Offset)":
-#         registers[R2] = 0x4000
-#         registers[R1] = 0x2222
-#         let instr = uint16(0b0111001010000101) # STR R1, R2, #5
-#         strOp(instr, registers, memory)
-#         check memory[0x4005] == 0x2222
+        let instr = uint16(0b0110001010111011) # LDR R1, R2, #-5
 
-#     test "STI (Indirect)":
-#         registers[PC] = 0x3000
-#         registers[R1] = 0x3333
-#         memory[0x3006] = 0x4500          # Destination pointer
-#         let instr = uint16(0b1011001000000101) # STI R1, #5
-#         stiOp(instr, registers, memory)
-#         check memory[0x4500] == 0x3333
+        ldr(instr, registers, memory)
+
+        check:
+            registers[R1] == 0x1234
+            registers[COND] == FL_POS
 
 
+suite "STORES - Condition Codes":
 
+    setup:
+        var registers: Registers
+        var memory: Memory
 
+    test "ST does not modify condition codes":
+        registers[PC] = 0x3001
+        registers[R1] = 0x1111
+        registers[COND] = FL_NEG
+
+        let instr = uint16(0b0011001000000101) # ST R1, #5
+
+        st(instr, registers, memory)
+
+        check:
+            memory[0x3006] == 0x1111
+            registers[COND] == FL_NEG
+
+    test "STR does not modify condition codes":
+        registers[R2] = 0x4000
+        registers[R1] = 0x2222
+        registers[COND] = FL_ZRO
+
+        let instr = uint16(0b0111001010000101) # STR R1, R2, #5
+
+        str(instr, registers, memory)
+
+        check:
+            memory[0x4005] == 0x2222
+            registers[COND] == FL_ZRO
+
+    test "STI does not modify condition codes":
+        registers[PC] = 0x3001
+        registers[R1] = 0x3333
+        registers[COND] = FL_POS
+
+        memory[0x3006] = 0x4500
+
+        let instr = uint16(0b1011001000000101) # STI R1, #5
+
+        sti(instr, registers, memory)
+
+        check:
+            memory[0x4500] == 0x3333
+            registers[COND] == FL_POS
