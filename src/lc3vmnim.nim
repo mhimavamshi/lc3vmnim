@@ -1,15 +1,16 @@
+import std/streams
+import std/cmdline
+import std/strformat
 import alltypes
 import memoryutils
-import ops
-import std/streams
 import utils 
+import ops
 
 #[ 
 there's an alternative way to write this, instead of 1->1 w c 
 we can also, maybe, read the whole file once and then read it as needed in memory
 ]#
-proc readImageFile*(name: string, memory: var Memory) = 
-  let MEMORYMAX = 65535'u16
+proc readImageFile*(name: string, memory: var Memory): bool = 
 
   let f = newFileStream(name, fmRead)
   if not f.isNil:
@@ -25,9 +26,11 @@ proc readImageFile*(name: string, memory: var Memory) =
       let offset = uint16(i)
       memory[origin + offset] = swap16(memory[origin + offset])
 
-
+    return true
+  return false
 
 proc main() =
+
   # 2^16 locations (16 bit unsigned integer), and each has 16 bit value
   var memory: Memory
 
@@ -37,10 +40,17 @@ proc main() =
   
   registers[Register.COND] = FL_ZRO
 
-  const START = 12288
-  registers[Register.PC] = START 
+  let args = commandLineParams()
+
+  for arg in args:
+    let success = readImageFile(arg, memory)
+    if success == false:
+      echo(&"failed to load image: {arg}")
+      quit(1)
 
   var running = Running(true)
+
+  registers[Register.PC] = START 
 
   while bool(running):
     let instr = memRead(registers[Register.PC], memory)
@@ -80,8 +90,6 @@ proc main() =
         trap(instr, registers, memory, running)
       of RES, RTI:
         badOpcode()
-
-
 
 when isMainModule:
   import term

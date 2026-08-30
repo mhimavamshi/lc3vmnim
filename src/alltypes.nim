@@ -1,4 +1,5 @@
-const MEMORYMAX = 65535
+const MEMORYMAX* = 65535
+const START* = 12288
 
 type
   Register* = enum
