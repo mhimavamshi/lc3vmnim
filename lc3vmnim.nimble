@@ -5,7 +5,7 @@ author        = "mhimavamshi"
 description   = "lc3 vm for learning purposes"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["lc3vm"]
+bin           = @["lc3vm", "lc3as"]
 
 
 # Dependencies
