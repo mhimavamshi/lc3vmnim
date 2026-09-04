@@ -1,0 +1,118 @@
+import std/streams
+import std/cmdline
+import std/strformat
+import alltypes
+import memoryutils
+import utils 
+import ops
+
+#[ 
+there's an alternative way to write this, instead of 1->1 w c 
+we can also, maybe, read the whole file once and then read it as needed in memory
+]#
+proc readImageFile*(name: string, memory: var Memory): bool = 
+  # echo(&"reading image file: {name}")
+
+  let f = newFileStream(name, fmRead)
+
+  if not f.isNil:
+
+    defer: f.close()
+    try:
+
+      let origin = swap16(f.readUint16())
+      let maxRead = int(MEMORYMAX - origin + 1)
+      var read = f.readData(addr memory[origin], maxRead * sizeof(uint16))
+      let wordsRead = read div sizeof(uint16)
+
+      for i in 0..<wordsRead:
+        let offset = uint16(i)
+        memory[origin + offset] = swap16(memory[origin + offset])
+      
+    except IOError:
+      echo(&"couldn't find origin in image: {name}, exiting...")
+      quit(1)
+
+    return true
+
+  return false
+
+proc main() =
+
+  # 2^16 locations (16 bit unsigned integer), and each has 16 bit value
+  var memory: Memory
+
+  # 10 registers, each 16 bits - 8 general purpose, 1 PC, 1 COND flag
+  # const REGISTERSMAX = 10
+  var registers: Registers
+  
+  registers[Register.COND] = FL_ZRO
+
+  let args = commandLineParams()
+
+  if args.len() == 0:
+    echo("./lc3vmnim [image-file1] [image-file2] ...")
+    quit(1)
+
+  for arg in args:
+    let success = readImageFile(arg, memory)
+    if success == false:
+      echo(&"failed to load image: {arg}")
+      quit(1)
+
+  var running = Running(true)
+
+  registers[Register.PC] = START 
+
+  while bool(running):
+    let instr = memRead(registers[Register.PC], memory)
+    registers[Register.PC] += 1
+    
+    let op = instr shr 12 # get the first 4 bits from 16 bit word which is the opcode 
+    let code = Opcodes(op)
+
+    case code:
+      of ADD:
+        addOp(instr, registers)
+      of AND:
+        andOp(instr, registers)
+      of NOT:
+        notOp(instr, registers)
+      of BR:
+        br(instr, registers)                                                    
+      of JMP:
+        jmp(instr, registers)
+      of JSR:
+        jsr(instr, registers)
+      of LD:
+        ld(instr, registers, memory)
+      of LDI:
+        ldi(instr, registers, memory)
+      of LDR:
+        ldr(instr, registers, memory)
+      of LEA:
+        lea(instr, registers)
+      of ST:
+        st(instr, registers, memory)
+      of STI:
+        sti(instr, registers, memory)
+      of STR:
+        str(instr, registers, memory)
+      of TRAP:
+        trap(instr, registers, memory, running)
+      of RES, RTI:
+        badOpcode()
+
+when isMainModule:
+  import term
+
+  proc ctrlcHandler() {.noconv.} =
+    restoreInputBuffering()
+    echo "\nInterrupted..."
+    quit(-2)
+
+  setControlCHook(ctrlcHandler)
+
+  disableInputBuffering()
+  main()
+  restoreInputBuffering()
