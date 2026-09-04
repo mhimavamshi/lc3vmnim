@@ -12,7 +12,7 @@ nimble build # to build the lc3vmnim binary
 ```
 2. Use it
 ```bash
-./lc3vmnim [image-file1.obj] [image-file2.obj] ... # all will be loaded into memory and written, as per origin
+./lc3vm [image-file1.obj] [image-file2.obj] ... # all will be loaded into memory and written, as per origin
 ```
 Use `Ctrl+C` to interrupt to exit.
 
@@ -20,5 +20,5 @@ Use `Ctrl+C` to interrupt to exit.
 You can download this "image file" or .obj file: [2048.obj](https://www.jmeiners.com/lc3-vm/supplies/2048.obj) and run it, to get started quickly.
 
 ```bash
-./lc3vmnim 2048.obj 
+./lc3vm 2048.obj 
 ```
