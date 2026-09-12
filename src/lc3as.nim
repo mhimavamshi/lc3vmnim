@@ -10,7 +10,7 @@ import alltypes
 const instructions = toHashSet(["BR", "ADD", "LD", "ST", "JSR", "AND", "LDR", "STR", "RTI", "NOT", "LDI", "STI", "JMP", "RES", "LEA", "TRAP"])
 const pseudoInstructions = toHashSet([".ORIG", ".END", ".BLKW", ".FILL", ".STRINGZ"])
 
-const
+let
   whitespace = re"\s+"
   commaWhitespace = re",\s+"
 
@@ -52,7 +52,7 @@ proc tokenizePseudoInstruction(words: seq[string]): seq[Token] =
   # if words.len() > 2:
   #   result = result & tokenizeComments(words[2..^1])
 
-proc tokenize(words: seq[string], index: int = 0): seq[Token] =
+proc tokenize*(words: seq[string], index: int = 0): seq[Token] =
   if words.len() == 0:
     return
   if words[0] == ";":
@@ -72,7 +72,7 @@ proc tokenize(words: seq[string], index: int = 0): seq[Token] =
     result = result & tokenize(words[1..^1], index + 1)
 
 
-proc classifyLine(line: var Line): LineNode =
+proc classifyLine*(line: var Line): LineNode =
   # standalone comment
   # if line.text[0] == ';':
   #   result = LineNode(lineType: COMMENT, TEXT: line.text)
@@ -81,15 +81,19 @@ proc classifyLine(line: var Line): LineNode =
   let words = cleanLine.split(" ") # Add a, b, c => Add, 'a,', 'b,', 'c,'
   let tokens = tokenize(words)
 
+  if tokens.len() == 0:
+    result = LineNode(lineType: UNKNOWN, DATA: tokens)
+    return 
+
   case tokens[0].tokenType:
   of OPCODE:
     # if we tokenized comments, we need to get the index from where comments start, from the prev procs
-    result = LineNode(lineType: INSTRUCTION, OPCODE: tokens[0].value, OPERANDS: tokens[1..^1])
+    result = LineNode(lineType: INSTRUCTION, OPCODE: tokens[0], OPERANDS: tokens[1..^1])
   of PSEUDOOPCODE:
     # if we tokenized comments, we need to get the index from where comments start, from the prev procs
-    result = LineNode(lineType: PSEUDOINSTRUCTION, PSEUDOPCODE: tokens[0].value, PSEUDOOPERANDS: tokens[1..^1])
+    result = LineNode(lineType: PSEUDOINSTRUCTION, PSEUDOPCODE: tokens[0], PSEUDOOPERANDS: tokens[1..^1])
   of LABEL:
-    result = LineNode(lineType: LABEL, NAME: tokens[0].value, OFFSET: line.number)
+    result = LineNode(lineType: LABEL, NAME: tokens[0], OFFSET: line.number)
   of COMMENT:
     result = LineNode(lineType: COMMENT, TEXT: tokens[0].value)
   else:
@@ -110,7 +114,7 @@ proc assemble(name: string): bool =
   if data.len() == 0:
     result = false
   else:
-    echo(data)
+    # echo(data)
     result = true
 
 proc main() =
