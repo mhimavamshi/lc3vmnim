@@ -1,3 +1,5 @@
+# VM Types
+
 const
   MEMORYMAX* = 0x10000
   START* = 0x3000
@@ -56,3 +58,51 @@ const
 
   MR_KBSR* = 0xFE00'u16
   MR_KBDR* = 0xFE02'u16
+
+# Assembler Types
+import std/options
+
+type 
+  LineType* = enum 
+    INSTRUCTION,
+    PSEUDOINSTRUCTION,
+    COMMENT,
+    LABEL,
+    UNKNOWN
+
+  TokenType* = enum 
+    OPCODE,
+    PSEUDOOPCODE,
+    PSEUDOOPERAND,
+    REGOPERAND,
+    IMMOPERAND,
+    LABELOPERAND,
+    LABEL,
+    COMMENT
+
+  Token* = object 
+    tokenType*: TokenType
+    value*: string
+
+  LineNode* = ref object
+    case lineType*: LineType
+      of INSTRUCTION:
+        OPCODE*: Token 
+        OPERANDS*: seq[Token]  
+      of COMMENT:
+        TEXT*: string 
+      of LABEL:
+        NAME*: Token
+        OFFSET*: int
+      of PSEUDOINSTRUCTION:
+        PSEUDOPCODE*: Token
+        PSEUDOOPERANDS*: seq[Token]
+      of UNKNOWN:
+        DATA*: seq[Token] 
+
+  Line* = object 
+    number*: int
+    text*: string 
+    lineType*: LineType 
+
+  TokenError* = object of ValueError
