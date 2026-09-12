@@ -98,7 +98,10 @@ proc classifyLine(line: var Line): LineNode =
 
 proc readAsmFile(name: string): seq[LineNode] =
   for (i, line) in enumerate(lines(name)):
-    var currLine = Line(number: i, text: line.strip(), lineType: UNKNOWN)
+    let val = line.strip()
+    if val.isEmptyOrWhitespace():
+      continue
+    var currLine = Line(number: i, text: val)
     let node = classifyLine(currLine)
     result.add(node)
 

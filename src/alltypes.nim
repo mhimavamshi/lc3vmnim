@@ -103,6 +103,5 @@ type
   Line* = object 
     number*: int
     text*: string 
-    lineType*: LineType 
 
   TokenError* = object of ValueError
