@@ -4,7 +4,7 @@ import std/os
 
 import ../src/alltypes
 import ../src/utils
-import ../src/lc3vmnim
+import ../src/lc3vm
 
 suite "readImageFile":
 
