@@ -1,6 +1,8 @@
 import std/cmdline
 import std/enumerate
 import std/strformat
+import std/tables
+import std/options
 import std/sequtils
 import std/strutils
 import std/sets
@@ -72,7 +74,7 @@ proc tokenize*(words: seq[string], index: int = 0): seq[Token] =
     result = result & tokenize(words[1..^1], index + 1)
 
 
-proc classifyLine*(line: var Line): LineNode =
+proc classifyLine*(line: ref Line): LineNode =
   # standalone comment
   # if line.text[0] == ';':
   #   result = LineNode(lineType: COMMENT, TEXT: line.text)
@@ -94,28 +96,100 @@ proc classifyLine*(line: var Line): LineNode =
     result = LineNode(lineType: PSEUDOINSTRUCTION, PSEUDOPCODE: tokens[0], PSEUDOOPERANDS: tokens[1..^1])
   of LABEL:
     result = LineNode(lineType: LABEL, NAME: tokens[0], OFFSET: line.number)
+    if tokens.len() > 1:
+      case tokens[1].tokenType:
+      of OPCODE:
+        result.BODY = some(LineNode(lineType: INSTRUCTION, OPCODE: tokens[1], OPERANDS: tokens[2..^1]))
+      of PSEUDOOPCODE:
+        result.BODY = some(LineNode(lineType: PSEUDOINSTRUCTION, PSEUDOPCODE: tokens[1], PSEUDOOPERANDS: tokens[2..^1]))
+      else:
+        discard 
   of COMMENT:
     result = LineNode(lineType: COMMENT, TEXT: tokens[0].value)
   else:
     result = LineNode(lineType: UNKNOWN, DATA: tokens)
 
+  result.line = some(line)
 
 proc readAsmFile(name: string): seq[LineNode] =
   for (i, line) in enumerate(lines(name)):
     let val = line.strip()
     if val.isEmptyOrWhitespace():
       continue
-    var currLine = Line(number: i, text: val)
+    # var currLine = Line(number: i + 1, text: val)
+    var currLine = new(Line)
+    currLine.number = i + 1
+    currLine.text = val
     let node = classifyLine(currLine)
     result.add(node)
 
-proc assemble(name: string): bool =
-  let data = name.readAsmFile()
-  if data.len() == 0:
-    result = false
+proc getSize(node: LineNode): uint16 =
+  case node.lineType:
+  of INSTRUCTION:
+    1
+  of PSEUDOINSTRUCTION:
+    case node.PSEUDOPCODE.value:
+    of ".BLKW":
+      uint16(node.PSEUDOOPERANDS[0].value.parseInt())
+    of ".STRINGZ":
+      uint16(node.PSEUDOOPERANDS[0].value.len() + 1)
+    of ".FILL":
+      1
+    else:
+      0
   else:
-    # echo(data)
-    result = true
+    0
+
+proc makeSymbolTable(lineNodes: seq[LineNode]): Table[string, uint16] = 
+  var start: uint16
+  var startFound = false
+  var endPos: int
+  var endFound = false
+  for i, line in lineNodes:
+    if line.lineType == PSEUDOINSTRUCTION:
+      if line.PSEUDOPCODE.value == ".ORIG":
+        if endFound:
+          raise newException(FirstPassError, ".END found before .ORIG statement.")
+        start = uint16(line.PSEUDOOPERANDS[0].value.parseInt())
+        startFound = true
+      if line.PSEUDOPCODE.value == ".END":
+        if endFound:
+          raise newException(FirstPassError, "Another .END found after a previous .END statement.")
+        endPos = i
+        endFound = true
+
+  if not startFound:
+    raise newException(FirstPassError, "Could not find .ORIG statement.")
+
+  if not endFound:
+    raise newException(FirstPassError, "Could not find .END statement.")
+
+  var symbolTable = initTable[string, uint16]()
+  var offset = 0'u16
+  for line in lineNodes[0..endPos]:
+    if line.lineType == COMMENT:
+      continue
+    if line.lineType == LABEL:
+      symbolTable[line.NAME.value] = start + offset
+      if line.BODY.isSome:
+        offset += getSize(line.BODY.get)
+    # if line.lineType == PSEUDOINSTRUCTION:
+    #   if line.PSEUDOPCODE.value == ".BLKW":
+    #     offset += uint16(line.PSEUDOOPERANDS[0].value.parseInt())
+    #     continue
+    #   if line.PSEUDOPCODE.value == ".STRINGZ":
+    #     offset += uint16(line.PSEUDOOPERANDS[0].value.len() + 1) 
+    #     continue
+    else:
+        if line.lineType == PSEUDOINSTRUCTION and line.PSEUDOPCODE.value == ".ORIG":
+          start = uint16(line.PSEUDOOPERANDS[0].value.parseInt())
+          offset = 0
+          continue 
+        offset += getSize(line) 
+
+proc assemble(name: string): bool =
+  let lineNodes = name.readAsmFile()
+  let symbolTable = makeSymbolTable(lineNodes)
 
 proc main() =
   let args = commandLineParams()

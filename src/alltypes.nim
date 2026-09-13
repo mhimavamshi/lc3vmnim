@@ -94,14 +94,17 @@ type
       of LABEL:
         NAME*: Token
         OFFSET*: int
+        BODY*: Option[LineNode]
       of PSEUDOINSTRUCTION:
         PSEUDOPCODE*: Token
         PSEUDOOPERANDS*: seq[Token]
       of UNKNOWN:
         DATA*: seq[Token] 
+    line*: Option[ref Line]
 
   Line* = object 
     number*: int
     text*: string 
 
   TokenError* = object of ValueError
+  FirstPassError* = object of ValueError
