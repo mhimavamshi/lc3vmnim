@@ -3,7 +3,7 @@ import std/enumerate
 import std/strformat
 import std/tables
 import std/options
-import std/sequtils
+# import std/sequtils
 import std/strutils
 import std/sets
 import std/re
@@ -140,7 +140,7 @@ proc getSize(node: LineNode): uint16 =
   else:
     0
 
-proc makeSymbolTable(lineNodes: seq[LineNode]): Table[string, uint16] = 
+proc makeSymbolTable*(lineNodes: seq[LineNode]): Table[string, uint16] = 
   var start: uint16
   var startFound = false
   var endPos: int
@@ -164,6 +164,7 @@ proc makeSymbolTable(lineNodes: seq[LineNode]): Table[string, uint16] =
   if not endFound:
     raise newException(FirstPassError, "Could not find .END statement.")
 
+
   var symbolTable = initTable[string, uint16]()
   var offset = 0'u16
   for line in lineNodes[0..endPos]:
@@ -186,6 +187,8 @@ proc makeSymbolTable(lineNodes: seq[LineNode]): Table[string, uint16] =
           offset = 0
           continue 
         offset += getSize(line) 
+
+  result = symbolTable
 
 proc assemble(name: string): bool =
   let lineNodes = name.readAsmFile()

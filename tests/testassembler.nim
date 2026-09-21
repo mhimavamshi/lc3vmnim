@@ -5,11 +5,14 @@ import ../src/alltypes
 import ../src/lc3as
 
 
+type
+    LineRef = ref Line
+
 suite "Tokenization":
 
     test "instruction register operands":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD R1, R2, R3"
         )
@@ -32,7 +35,7 @@ suite "Tokenization":
 
     test "instruction immediate operand":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD R1, R2, #5"
         )
@@ -51,7 +54,7 @@ suite "Tokenization":
 
     test "instruction negative immediate":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD R1, R2, #-5"
         )
@@ -64,7 +67,7 @@ suite "Tokenization":
 
     test "instruction label operand":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "BR LOOP"
         )
@@ -81,7 +84,7 @@ suite "Tokenization":
 
     test "label followed by instruction":
 
-        var line = Line(
+        var line = LineRef(
             number: 4,
             text: "LOOP ADD R1, R2, R3"
         )
@@ -94,7 +97,7 @@ suite "Tokenization":
 
     test "label only":
 
-        var line = Line(
+        var line = LineRef(
             number: 4,
             text: "LOOP"
         )
@@ -107,7 +110,7 @@ suite "Tokenization":
 
     test "pseudo instruction":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: ".ORIG x3000"
         )
@@ -122,7 +125,7 @@ suite "Tokenization":
 
     test "instruction with extra whitespace":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD    R1,    R2,     #5"
         )
@@ -136,7 +139,7 @@ suite "Tokenization":
 
     test "standalone comment":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "; hello world"
         )
@@ -148,7 +151,7 @@ suite "Tokenization":
 
     test "comment only":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: ";"
         )
@@ -160,7 +163,7 @@ suite "Tokenization":
 
     test "comment after instruction":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD R1, R2, R3 ; increment"
         )
@@ -173,7 +176,7 @@ suite "Tokenization":
 
     test "comment without whitespace":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD R1, R2, R3 ;increment"
         )
@@ -186,7 +189,7 @@ suite "Tokenization":
 
     test "tab separated instruction":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD\tR1,\tR2,\t#5"
         )
@@ -200,7 +203,7 @@ suite "Tokenization":
 
     test "leading and trailing whitespace":
         let val = "   ADD R1, R2, R3   "
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: val.strip() # simulates readAsmFile
         )
@@ -213,7 +216,7 @@ suite "Tokenization":
 
     test "different instruction forms":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "BR LOOP"
         )
@@ -247,7 +250,7 @@ suite "Tokenization":
 
         for opcode in [".ORIG", ".END", ".BLKW", ".FILL", ".STRINGZ"]:
 
-            var line = Line(
+            var line = LineRef(
                 number: 0,
                 text: opcode
             )
@@ -260,7 +263,7 @@ suite "Tokenization":
 
     test "register-like operand":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "ADD R1, R2, R10"
         )
@@ -276,7 +279,7 @@ suite "Tokenization":
 
     test "two labels":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "FOO BAR ADD R1, R2, R3"
         )
@@ -287,7 +290,7 @@ suite "Tokenization":
 
     test "multiple unknown tokens":
 
-        var line = Line(
+        var line = LineRef(
             number: 0,
             text: "FOO BAR BAZ"
         )
